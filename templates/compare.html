@@ -1,0 +1,112 @@
+{% from "_macros.html" import select, number, OPT_GENDER, OPT_GROUP, OPT_PARENT, OPT_LUNCH, OPT_PREP %}
+{% macro student(p, title, form) %}
+<div class="student">
+    <h3>{{ title }}</h3>
+    {{ select(p ~ '_gender', 'Gender', OPT_GENDER, form) }}
+    {{ select(p ~ '_race_ethnicity', 'Race / Ethnicity', OPT_GROUP, form) }}
+    {{ select(p ~ '_parental_level_of_education', 'Parental Education', OPT_PARENT, form) }}
+    {{ select(p ~ '_lunch', 'Lunch type', OPT_LUNCH, form) }}
+    {{ select(p ~ '_test_preparation_course', 'Test prep course', OPT_PREP, form) }}
+    {{ number(p ~ '_reading_score', '📖 Reading (0-100)', form, 'e.g. 72') }}
+    {{ number(p ~ '_writing_score', '✍️ Writing (0-100)', form, 'e.g. 74') }}
+</div>
+{% endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Compare Students</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="card wide">
+        <div class="badge">⚖️</div>
+        <h1>Compare Two Students</h1>
+        <p class="subtitle">See who is ahead, subject by subject.</p>
+
+        {% include "_nav.html" %}
+
+        {% if error %}<div class="alert">⚠️ {{ error }}</div>{% endif %}
+
+        <form action="{{ url_for('compare') }}" method="post" id="cmpForm">
+            <div class="compare-grid">
+                {{ student('a', 'Student A', form) }}
+                {{ student('b', 'Student B', form) }}
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Compare</button>
+        </form>
+
+        {% if a and b %}
+        <div class="result" id="result">
+            <div class="label">Verdict</div>
+            <div class="score" style="font-size:1.6rem;">
+                {% if gap > 0 %}Student A leads by {{ gap }} points
+                {% elif gap < 0 %}Student B leads by {{ gap|abs }} points
+                {% else %}It's a tie{% endif %}
+            </div>
+
+            <table class="subj cmp">
+                <thead><tr><th></th><th>Student A</th><th>Student B</th></tr></thead>
+                <tbody>
+                    {% for i in range(3) %}
+                    {% set sa = a.subjects[i] %}{% set sb = b.subjects[i] %}
+                    <tr>
+                        <td>{{ sa.name }}{% if sa.predicted %} <em>(predicted)</em>{% endif %}</td>
+                        <td class="{{ 'win' if sa.score > sb.score }}">{{ sa.score }} ({{ sa.grade }})</td>
+                        <td class="{{ 'win' if sb.score > sa.score }}">{{ sb.score }} ({{ sb.grade }})</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td><b>Average</b></td>
+                        <td class="{{ 'win' if a.average > b.average }}"><b>{{ a.average }}</b> ({{ a.overall_grade }})</td>
+                        <td class="{{ 'win' if b.average > a.average }}"><b>{{ b.average }}</b> ({{ b.overall_grade }})</td>
+                    </tr>
+                    <tr>
+                        <td>Rank</td>
+                        <td>Top {{ a.top_pct }}%</td>
+                        <td>Top {{ b.top_pct }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Strongest</td>
+                        <td>{{ a.strongest }}</td>
+                        <td>{{ b.strongest }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="radar-box" style="max-width:560px;"><canvas id="cmpChart"></canvas></div>
+            <button type="button" class="btn secondary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+        </div>
+        <script>
+        (function () {
+            const A = {{ a.subjects | tojson }}, B = {{ b.subjects | tojson }};
+            const css = getComputedStyle(document.documentElement);
+            Chart.defaults.color = css.getPropertyValue('--text').trim();
+            Chart.defaults.borderColor = css.getPropertyValue('--border').trim();
+            new Chart(document.getElementById('cmpChart'), {
+                type: 'bar',
+                data: {
+                    labels: A.map(s => s.name).concat(['Average']),
+                    datasets: [
+                        {label: 'Student A', data: A.map(s => s.score).concat([{{ a.average }}]), backgroundColor: '#6b9080'},
+                        {label: 'Student B', data: B.map(s => s.score).concat([{{ b.average }}]), backgroundColor: '#b8a9c9'}
+                    ]
+                },
+                options: {scales: {y: {min: 0, max: 100}}}
+            });
+            document.getElementById('result').scrollIntoView({behavior: 'smooth'});
+        })();
+        </script>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById("cmpForm").addEventListener("submit", function () {
+            var b = document.getElementById("submitBtn");
+            if (this.checkValidity()) { b.classList.add("loading"); b.textContent = "Comparing..."; }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Explore the Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="card wide">
+        <div class="badge">📊</div>
+        <h1>Explore the Data</h1>
+        <p class="subtitle">What {{ data.total }} real student records tell us about exam scores.</p>
+
+        {% include "_nav.html" %}
+
+        <!-- headline numbers -->
+        <div class="stat-grid">
+            <div class="stat"><b>{{ data.total }}</b><span>Students</span></div>
+            <div class="stat"><b>{{ data.avg.math }}</b><span>Avg maths</span></div>
+            <div class="stat"><b>{{ data.avg.reading }}</b><span>Avg reading</span></div>
+            <div class="stat"><b>{{ data.avg.writing }}</b><span>Avg writing</span></div>
+        </div>
+
+        <div class="section-title">Maths score spread</div>
+        <div class="chart-box"><canvas id="histChart"></canvas></div>
+
+        <div class="section-title">Do reading skills predict maths?</div>
+        <div class="chart-box"><canvas id="scatterChart"></canvas></div>
+        <p class="insight">Correlation with maths: reading <b>{{ data.corr_reading }}</b>,
+            writing <b>{{ data.corr_writing }}</b>. Values close to 1 mean strong students tend to be strong in both.</p>
+
+        <div class="section-title">Average score by group</div>
+        <div class="chart-grid">
+            <div class="chart-box"><h3>Test preparation</h3><canvas id="prepChart"></canvas></div>
+            <div class="chart-box"><h3>Lunch type</h3><canvas id="lunchChart"></canvas></div>
+            <div class="chart-box"><h3>Gender</h3><canvas id="genderChart"></canvas></div>
+            <div class="chart-box"><h3>Race / Ethnicity</h3><canvas id="raceChart"></canvas></div>
+        </div>
+        <div class="chart-box"><h3>Parental education</h3><canvas id="parentChart"></canvas></div>
+
+        <p class="note">ℹ️ These are averages of a sample dataset. Differences between groups describe the data,
+            not any individual student, and do not prove cause and effect.</p>
+        <a class="btn secondary" href="{{ url_for('predict_datapoint') }}">Try a prediction →</a>
+    </div>
+
+    <script>
+    (function () {
+        const D = {{ data | tojson }};
+        const css = getComputedStyle(document.documentElement);
+        const get = n => css.getPropertyValue(n).trim();
+        Chart.defaults.color = get('--text');
+        Chart.defaults.borderColor = get('--border');
+        Chart.defaults.font.family = '"Segoe UI", system-ui, Arial, sans-serif';
+
+        const COLORS = {math: '#6b9080', reading: '#b8a9c9', writing: '#e0b88f'};
+
+        // grouped bar: one bar per subject for each category
+        function grouped(id, g, horizontal) {
+            new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: {
+                    labels: g.labels,
+                    datasets: ['math', 'reading', 'writing'].map(k => ({
+                        label: k[0].toUpperCase() + k.slice(1),
+                        data: g[k],
+                        backgroundColor: COLORS[k],
+                        borderRadius: 6
+                    }))
+                },
+                options: {
+                    indexAxis: horizontal ? 'y' : 'x',
+                    scales: horizontal ? {x: {min: 40, max: 85}} : {y: {min: 40, max: 85}},
+                    plugins: {legend: {position: 'bottom'}}
+                }
+            });
+        }
+
+        // histogram
+        new Chart(document.getElementById('histChart'), {
+            type: 'bar',
+            data: {
+                labels: D.hist.labels,
+                datasets: [{label: 'Students', data: D.hist.counts, backgroundColor: COLORS.math, borderRadius: 6}]
+            },
+            options: {
+                plugins: {legend: {display: false}},
+                scales: {
+                    x: {title: {display: true, text: 'Maths score range'}},
+                    y: {title: {display: true, text: 'Students'}}
+                }
+            }
+        });
+
+        // scatter: reading vs maths
+        new Chart(document.getElementById('scatterChart'), {
+            type: 'scatter',
+            data: {datasets: [{
+                label: 'Student',
+                data: D.scatter,
+                backgroundColor: 'rgba(107,144,128,0.45)',
+                pointRadius: 3
+            }]},
+            options: {
+                plugins: {legend: {display: false}},
+                scales: {
+                    x: {min: 0, max: 100, title: {display: true, text: 'Reading score'}},
+                    y: {min: 0, max: 100, title: {display: true, text: 'Maths score'}}
+                }
+            }
+        });
+
+        grouped('prepChart', D.prep);
+        grouped('lunchChart', D.lunch);
+        grouped('genderChart', D.gender);
+        grouped('raceChart', D.race);
+        grouped('parentChart', D.parent, true);
+    })();
+    </script>
+</body>
+</html>

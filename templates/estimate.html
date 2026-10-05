@@ -1,0 +1,68 @@
+{% from "_macros.html" import select, OPT_GENDER, OPT_GROUP, OPT_PARENT, OPT_LUNCH, OPT_PREP %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quick Estimate</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="card">
+        <div class="badge">🔮</div>
+        <h1>Quick Estimate</h1>
+        <p class="subtitle">No exam scores yet? Estimate maths, reading and writing from background details alone.</p>
+
+        {% include "_nav.html" %}
+
+        {% if error %}<div class="alert">⚠️ {{ error }}</div>{% endif %}
+
+        <form action="{{ url_for('estimate') }}" method="post" id="estForm">
+            <div class="row">
+                {{ select('gender', 'Gender', OPT_GENDER, form) }}
+                {{ select('race_ethnicity', 'Race / Ethnicity', OPT_GROUP, form) }}
+            </div>
+            <div class="row">
+                {{ select('parental_level_of_education', 'Parental Education', OPT_PARENT, form) }}
+                {{ select('lunch', 'Lunch type', OPT_LUNCH, form) }}
+            </div>
+            {{ select('test_preparation_course', 'Test preparation course', OPT_PREP, form) }}
+            <button type="submit" class="btn" id="submitBtn">Estimate all scores</button>
+        </form>
+
+        {% if result %}
+        <div class="result" id="result">
+            <div class="label">Estimated average</div>
+            <div class="score">{{ result.average }}<small> / 100</small></div>
+            <div class="chips">
+                <span class="chip grade">Grade {{ result.grade }}</span>
+                <span class="chip">{{ result.remark }}</span>
+            </div>
+
+            {% for r in result.rows %}
+            <div class="est-row">
+                <div class="est-head">
+                    <span>{{ r.name }}</span>
+                    <span><b>{{ r.score }}</b> <small>(likely {{ r.low }}-{{ r.high }}, class avg {{ r.avg }})</small></span>
+                </div>
+                <div class="bar"><span style="width: {{ r.score }}%"></span></div>
+            </div>
+            {% endfor %}
+
+            <p class="note">⚠️ Background alone explains only about {{ result.explained }}% of score differences,
+                so treat these as rough estimates. For a sharper result, use the
+                <a href="{{ url_for('predict_datapoint') }}">Full Report</a> with reading and writing scores.</p>
+            <button type="button" class="btn secondary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+        </div>
+        <script>document.getElementById("result").scrollIntoView({behavior: "smooth"});</script>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById("estForm").addEventListener("submit", function () {
+            var b = document.getElementById("submitBtn");
+            if (this.checkValidity()) { b.classList.add("loading"); b.textContent = "Estimating..."; }
+        });
+    </script>
+</body>
+</html>

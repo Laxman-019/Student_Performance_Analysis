@@ -1,0 +1,25 @@
+{% set OPT_GENDER = ['male', 'female'] %}
+{% set OPT_GROUP = ['group A', 'group B', 'group C', 'group D', 'group E'] %}
+{% set OPT_PARENT = ["associate's degree", "bachelor's degree", "high school", "master's degree", "some college", "some high school"] %}
+{% set OPT_LUNCH = ['standard', 'free/reduced'] %}
+{% set OPT_PREP = ['none', 'completed'] %}
+
+{% macro select(name, label, options, form) %}
+<div class="field">
+    <label class="lbl" for="{{ name }}">{{ label }}</label>
+    <select id="{{ name }}" name="{{ name }}" required>
+        <option value="" disabled {% if not form.get(name) %}selected{% endif %}>Select</option>
+        {% for o in options %}
+        <option value="{{ o }}" {% if form.get(name) == o %}selected{% endif %}>{{ o[0]|upper ~ o[1:] }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endmacro %}
+
+{% macro number(name, label, form, placeholder='') %}
+<div class="field">
+    <label class="lbl" for="{{ name }}">{{ label }}</label>
+    <input id="{{ name }}" type="number" name="{{ name }}" min="0" max="100"
+           placeholder="{{ placeholder }}" value="{{ form.get(name, '') }}" required>
+</div>
+{% endmacro %}

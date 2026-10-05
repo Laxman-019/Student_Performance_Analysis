@@ -297,3 +297,56 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
     .row { grid-template-columns: 1fr; gap: 0; }
     .features { grid-template-columns: 1fr; }
 }
+
+/* ---------- round 3 ---------- */
+.subj { width: 100%; margin: 18px 0 6px; border-collapse: collapse; font-size: 0.9rem; }
+.subj th, .subj td { padding: 9px 6px; text-align: center; border-bottom: 1px solid var(--border); }
+.subj th { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.subj td:first-child, .subj th:first-child { text-align: left; }
+.subj em { font-size: 0.75rem; color: var(--muted); }
+.subj td.win { color: var(--primary-dark); font-weight: 700; background: rgba(107, 144, 128, 0.12); }
+
+.radar-box { max-width: 340px; margin: 18px auto 0; }
+.insight {
+    margin: 14px 0 0; padding: 12px 14px; font-size: 0.9rem; text-align: center;
+    background: var(--field); border: 1.5px solid var(--border); border-radius: 14px;
+}
+
+.est-row { margin: 18px 0; }
+.est-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 0.92rem; }
+.est-head small { color: var(--muted); }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.student { padding: 18px; background: var(--field); border: 1.5px solid var(--border); border-radius: 18px; }
+.student h3 { margin: 0 0 14px; color: var(--primary-dark); }
+
+@media (max-width: 720px) { .compare-grid { grid-template-columns: 1fr; } }
+
+@media print {
+    body::before, body::after, .nav, form, .btn, .link { display: none !important; }
+    .card { box-shadow: none; border: none; max-width: 100%; background: #fff; }
+    body { background: #fff; }
+}
+
+/* ---------- insights page ---------- */
+.card.wide { max-width: 900px; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 0 0 10px; }
+.stat {
+    padding: 16px 10px; text-align: center;
+    background: var(--field); border: 1.5px solid var(--border); border-radius: 18px;
+}
+.stat b { display: block; font-family: Georgia, serif; font-size: 1.7rem; color: var(--primary-dark); }
+.stat span { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-box {
+    margin: 0 0 16px; padding: 16px;
+    background: var(--field); border: 1.5px solid var(--border); border-radius: 18px;
+}
+.chart-box h3 { margin: 0 0 10px; font-size: 0.95rem; color: var(--primary-dark); }
+
+@media (max-width: 720px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+}

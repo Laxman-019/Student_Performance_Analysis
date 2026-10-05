@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Predict Maths Score</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="card">
@@ -93,12 +94,80 @@
             <button type="submit" class="btn" id="submitBtn">Predict Maths Score</button>
         </form>
 
-        {% if results is defined and results is not none and results != "" %}
-        <div class="result">
-            <div class="label">Predicted maths score</div>
-            <div class="score">{{ results }}<small> / 100</small></div>
-            <div class="bar"><span style="width: {{ results }}%"></span></div>
+        {% if result %}
+        <div class="result" id="result">
+            <div class="label">Overall performance</div>
+            <div class="score">{{ result.average }}<small> / 100 avg</small></div>
+            <div class="bar"><span style="width: {{ result.average }}%"></span></div>
+
+            <div class="chips">
+                <span class="chip grade">Overall grade {{ result.overall_grade }}</span>
+                <span class="chip">{{ result.overall_remark }}</span>
+                <span class="chip">Top {{ result.top_pct }}% of students</span>
+                <span class="chip">{{ '✅ Passed all subjects' if result.all_passed else '⚠️ Failing a subject' }}</span>
+            </div>
+
+            <table class="subj">
+                <thead>
+                    <tr><th>Subject</th><th>Score</th><th>Grade</th><th>Class avg</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in result.subjects %}
+                    <tr>
+                        <td>{{ s.name }}{% if s.predicted %} <em>(predicted)</em>{% endif %}</td>
+                        <td><b>{{ s.score }}</b></td>
+                        <td>{{ s.grade }}</td>
+                        <td>{{ s.avg }}</td>
+                        <td>{{ '✅ Pass' if s.passed else '❌ Fail' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="note">Total: <b>{{ result.total }}</b> / 300</p>
+
+            <div class="radar-box"><canvas id="radar"></canvas></div>
+
+            <div class="insight">
+                💪 Strongest vs class: <b>{{ result.strongest }}</b> &nbsp;·&nbsp;
+                🎯 Needs most work: <b>{{ result.weakest }}</b>
+            </div>
+
+            <div class="stats">
+                <div><b>{{ result.percentile }}%</b>of students scored lower in maths</div>
+                <div><b>{{ result.diff }}</b>maths vs class average ({{ result.class_avg }})</div>
+                <div><b>{{ result.low }}-{{ result.high }}</b>likely maths range</div>
+            </div>
+
+            <div class="section-title" style="margin-top:22px;">💡 How to improve</div>
+            <ul class="tips">
+                {% for t in result.tips %}<li>{{ t }}</li>{% endfor %}
+            </ul>
+
+            <button type="button" class="btn secondary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <p class="note">Predictions come from a model trained on a learning dataset and are estimates, not guarantees.</p>
         </div>
+        <script>
+        (function () {
+            const subj = {{ result.subjects | tojson }};
+            const css = getComputedStyle(document.documentElement);
+            Chart.defaults.color = css.getPropertyValue('--text').trim();
+            Chart.defaults.borderColor = css.getPropertyValue('--border').trim();
+            new Chart(document.getElementById('radar'), {
+                type: 'radar',
+                data: {
+                    labels: subj.map(s => s.name),
+                    datasets: [
+                        {label: 'This student', data: subj.map(s => s.score),
+                         backgroundColor: 'rgba(107,144,128,0.3)', borderColor: '#6b9080'},
+                        {label: 'Class average', data: subj.map(s => s.avg),
+                         backgroundColor: 'rgba(184,169,201,0.25)', borderColor: '#b8a9c9'}
+                    ]
+                },
+                options: {scales: {r: {min: 0, max: 100}}}
+            });
+            document.getElementById('result').scrollIntoView({behavior: 'smooth'});
+        })();
+        </script>
         {% endif %}
 
         <a class="link" href="{{ url_for('index') }}">← Back to home</a>
