@@ -15,7 +15,6 @@
 
         {% include "_nav.html" %}
 
-        <!-- headline numbers -->
         <div class="stat-grid">
             <div class="stat"><b>{{ data.total }}</b><span>Students</span></div>
             <div class="stat"><b>{{ data.avg.math }}</b><span>Avg maths</span></div>
@@ -56,7 +55,6 @@
 
         const COLORS = {math: '#6b9080', reading: '#b8a9c9', writing: '#e0b88f'};
 
-        // grouped bar: one bar per subject for each category
         function grouped(id, g, horizontal) {
             new Chart(document.getElementById(id), {
                 type: 'bar',
@@ -77,7 +75,6 @@
             });
         }
 
-        // histogram
         new Chart(document.getElementById('histChart'), {
             type: 'bar',
             data: {
@@ -93,7 +90,6 @@
             }
         });
 
-        // scatter: reading vs maths
         new Chart(document.getElementById('scatterChart'), {
             type: 'scatter',
             data: {datasets: [{

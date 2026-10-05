@@ -1,13 +1,13 @@
 :root {
-    --bg1: #e8f0e9;      /* soft sage */
-    --bg2: #f6efe6;      /* warm cream */
-    --bg3: #e7e3f1;      /* pale lavender */
+    --bg1: #e8f0e9;      
+    --bg2: #f6efe6;      
+    --bg3: #e7e3f1;      
     --card: rgba(255, 255, 255, 0.78);
     --text: #3d4a45;
     --muted: #7b8a83;
-    --primary: #6b9080;  /* calm sage green */
+    --primary: #6b9080;  
     --primary-dark: #55776a;
-    --accent: #b8a9c9;   /* soft lavender */
+    --accent: #b8a9c9;   
     --field: #f6f8f5;
     --border: #dfe6e0;
     --shadow: rgba(80, 110, 98, 0.18);
@@ -47,7 +47,7 @@ body {
     overflow-x: hidden;
 }
 
-/* soft drifting circles, like light through leaves */
+
 body::before, body::after {
     content: "";
     position: fixed;
@@ -116,7 +116,7 @@ h1 {
     line-height: 1.7;
 }
 
-/* form sections */
+
 .section-title {
     display: flex; align-items: center; gap: 12px;
     margin: 28px 0 16px;
@@ -159,7 +159,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
 
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-/* toggle buttons (radio) */
+
 .toggle { display: flex; gap: 10px; }
 .toggle input { position: absolute; opacity: 0; pointer-events: none; }
 .toggle label {
@@ -182,7 +182,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
 }
 .toggle input:focus-visible + label { outline: 3px solid rgba(107, 144, 128, 0.4); }
 
-/* buttons */
+
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 10px;
     width: 100%;
@@ -223,7 +223,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
 }
 .link:hover { opacity: 0.7; }
 
-/* result */
+
 .result {
     margin-top: 30px;
     padding: 26px;
@@ -255,7 +255,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
 }
 @keyframes grow { from { width: 0; } }
 
-/* landing page */
+
 .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 30px; }
 .feature {
     padding: 18px 10px;
@@ -287,7 +287,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
     border-radius: 50%;
 }
 
-/* respect people who prefer less motion */
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -298,7 +298,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
     .features { grid-template-columns: 1fr; }
 }
 
-/* ---------- round 3 ---------- */
+
 .subj { width: 100%; margin: 18px 0 6px; border-collapse: collapse; font-size: 0.9rem; }
 .subj th, .subj td { padding: 9px 6px; text-align: center; border-bottom: 1px solid var(--border); }
 .subj th { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
@@ -328,7 +328,7 @@ input::placeholder { color: var(--muted); opacity: 0.7; }
     body { background: #fff; }
 }
 
-/* ---------- insights page ---------- */
+
 .card.wide { max-width: 900px; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 0 0 10px; }

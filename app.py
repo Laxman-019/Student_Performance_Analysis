@@ -11,7 +11,6 @@ from src.utils import load_object
 app = Flask(__name__)
 application = app
 
-# ---------- reference data ----------
 REF = pd.read_csv(os.path.join("notebook", "data", "stud.csv"))
 REF["avg_all"] = REF[["math_score", "reading_score", "writing_score"]].mean(axis=1)
 
@@ -33,7 +32,6 @@ ALLOWED = {
 _profile_cache = {}
 
 
-# ---------- helpers ----------
 def parse_input(src, with_scores=True):
     data = {}
     for key, allowed in ALLOWED.items():
@@ -231,7 +229,6 @@ def insights_data():
     }
 
 
-# ---------- routes ----------
 @app.route("/")
 def index():
     return render_template("index.html")
