@@ -3,13 +3,18 @@ import os
 
 import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 from src.pipeline.predict_pipeline import CustomData, PredictPipeline
 from src.utils import load_object
 
 app = Flask(__name__)
 application = app
+
+# Frontend origins allowed to call this API (comma-separated env var on Render)
+_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
+CORS(app, origins=[o.strip() for o in _origins if o.strip()])
 
 REF = pd.read_csv(os.path.join("notebook", "data", "stud.csv"))
 REF["avg_all"] = REF[["math_score", "reading_score", "writing_score"]].mean(axis=1)
@@ -229,84 +234,60 @@ def insights_data():
     }
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+def normalize(payload):
+    """Accept both 'ethnicity' (old form name) and 'race_ethnicity'."""
+    payload = dict(payload or {})
+    if "race_ethnicity" not in payload and "ethnicity" in payload:
+        payload["race_ethnicity"] = payload["ethnicity"]
+    return payload
 
 
-@app.route("/predictdata", methods=["GET", "POST"])
-def predict_datapoint():
-    if request.method == "GET":
-        return render_template("home.html", form={})
-
-    form = request.form.to_dict()
-    form["race_ethnicity"] = form.get("ethnicity")  # form field is named "ethnicity"
+def respond(fn, fail_msg="Something went wrong. Please try again."):
     try:
-        result = build_report(parse_input(form))
-        return render_template("home.html", result=result, form=request.form)
-    except ValueError as e:
-        return render_template("home.html", error=str(e), form=request.form), 400
-    except Exception:
-        app.logger.exception("Prediction failed")
-        return render_template("home.html", error="Something went wrong. Please try again.",
-                               form=request.form), 500
-
-
-@app.route("/estimate", methods=["GET", "POST"])
-def estimate():
-    if request.method == "GET":
-        return render_template("estimate.html", form={})
-    try:
-        data = parse_input(request.form.to_dict(), with_scores=False)
-        return render_template("estimate.html", result=build_estimate(data), form=request.form)
-    except ValueError as e:
-        return render_template("estimate.html", error=str(e), form=request.form), 400
-    except Exception:
-        app.logger.exception("Estimate failed")
-        return render_template("estimate.html",
-                               error="Quick Estimate is not available right now.",
-                               form=request.form), 500
-
-
-@app.route("/compare", methods=["GET", "POST"])
-def compare():
-    if request.method == "GET":
-        return render_template("compare.html", form={})
-    try:
-        reports = {}
-        for p in ("a", "b"):
-            src = {k[2:]: v for k, v in request.form.items() if k.startswith(f"{p}_")}
-            reports[p] = build_report(parse_input(src))
-        gap = round(reports["a"]["average"] - reports["b"]["average"], 1)
-        return render_template("compare.html", form=request.form,
-                               a=reports["a"], b=reports["b"], gap=gap)
-    except ValueError as e:
-        return render_template("compare.html", error=str(e), form=request.form), 400
-    except Exception:
-        app.logger.exception("Compare failed")
-        return render_template("compare.html", error="Something went wrong. Please try again.",
-                               form=request.form), 500
-
-
-@app.route("/insights")
-def insights():
-    return render_template("insights.html", data=insights_data())
-
-
-@app.post("/api/predict")
-def api_predict():
-    payload = request.get_json(silent=True) or {}
-    try:
-        data = parse_input(payload)
+        return jsonify(fn())
     except ValueError as e:
         return jsonify(error=str(e)), 400
-    return jsonify(build_report(data))
+    except Exception:
+        app.logger.exception("Request failed")
+        return jsonify(error=fail_msg), 500
 
 
-@app.route("/health")
+@app.get("/health")
 def health():
     return jsonify(status="ok")
 
 
+@app.post("/api/predict")
+def api_predict():
+    payload = normalize(request.get_json(silent=True))
+    return respond(lambda: build_report(parse_input(payload)))
+
+
+@app.post("/api/estimate")
+def api_estimate():
+    payload = normalize(request.get_json(silent=True))
+    return respond(
+        lambda: build_estimate(parse_input(payload, with_scores=False)),
+        "Quick Estimate is not available right now.",
+    )
+
+
+@app.post("/api/compare")
+def api_compare():
+    payload = request.get_json(silent=True) or {}
+
+    def run():
+        reports = {p: build_report(parse_input(normalize(payload.get(p)))) for p in ("a", "b")}
+        gap = round(reports["a"]["average"] - reports["b"]["average"], 1)
+        return {"a": reports["a"], "b": reports["b"], "gap": gap}
+
+    return respond(run)
+
+
+@app.get("/api/insights")
+def api_insights():
+    return respond(insights_data)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
