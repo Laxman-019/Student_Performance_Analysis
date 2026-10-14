@@ -220,3 +220,9 @@ __marimo__/
 catboost_info/
 *.tfevents*
 
+venv/
+catboost_info/
+*.egg-info/
+backend/logs/
+__pycache__/
+.env
