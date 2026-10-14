@@ -1,22 +1,14 @@
-export const OPTIONS = {
-  gender: ["female", "male"],
-  race_ethnicity: ["group A", "group B", "group C", "group D", "group E"],
-  parental_level_of_education: [
-    "some high school",
-    "high school",
-    "some college",
-    "associate's degree",
-    "bachelor's degree",
-    "master's degree",
-  ],
-  lunch: ["standard", "free/reduced"],
-  test_preparation_course: ["none", "completed"],
-};
+export const OPT_GENDER = ["male", "female"];
+export const OPT_GROUP = ["group A", "group B", "group C", "group D", "group E"];
+export const OPT_PARENT = [
+  "associate's degree",
+  "bachelor's degree",
+  "high school",
+  "master's degree",
+  "some college",
+  "some high school",
+];
+export const OPT_LUNCH = ["standard", "free/reduced"];
+export const OPT_PREP = ["none", "completed"];
 
-export const LABELS = {
-  gender: "Gender",
-  race_ethnicity: "Race / Ethnicity",
-  parental_level_of_education: "Parental education",
-  lunch: "Lunch type",
-  test_preparation_course: "Test preparation course",
-};
+export const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);

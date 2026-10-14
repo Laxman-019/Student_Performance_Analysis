@@ -1,31 +1,31 @@
 import { NavLink } from "react-router-dom";
+import {
+  FaGraduationCap, FaHome, FaClipboardList, FaMagic, FaBalanceScale, FaChartBar,
+} from "react-icons/fa";
 
 const links = [
-  ["/", "Home"],
-  ["/predict", "Predict"],
-  ["/estimate", "Estimate"],
-  ["/compare", "Compare"],
-  ["/insights", "Explore the Data"],
+  ["/", "Home", FaHome],
+  ["/predict", "Full Report", FaClipboardList],
+  ["/estimate", "Quick Estimate", FaMagic],
+  ["/compare", "Compare", FaBalanceScale],
+  ["/insights", "Insights", FaChartBar],
 ];
 
 export default function Navbar() {
   return (
-    <nav className="bg-white shadow-sm">
-      <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
-        <span className="font-semibold text-brand-700">Student Performance</span>
-        {links.map(([to, label]) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === "/"}
-            className={({ isActive }) =>
-              `text-sm ${isActive ? "font-semibold text-brand-700" : "text-slate-500 hover:text-brand-500"}`
-            }
-          >
-            {label}
-          </NavLink>
-        ))}
+    <header className="topbar">
+      <div className="topbar-inner">
+        <NavLink to="/" className="brand">
+          <FaGraduationCap /> Student Performance
+        </NavLink>
+        <nav className="topnav">
+          {links.map(([to, label, Icon]) => (
+            <NavLink key={to} to={to} end={to === "/"} className="navlink">
+              <Icon /> {label}
+            </NavLink>
+          ))}
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }

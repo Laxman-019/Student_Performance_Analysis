@@ -1,27 +1,39 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  FaGraduationCap, FaMale, FaFemale, FaUtensils, FaAppleAlt, FaBan, FaCheckCircle,
+  FaBookOpen, FaPen, FaArrowLeft,
+} from "react-icons/fa";
+import PageCard from "../components/PageCard";
+import ReportResult from "../components/ReportResult";
+import { Select, NumberField, Toggle } from "../components/Fields";
+import { SubmitButton, ErrorAlert } from "../components/ui";
+import { useScrollTo } from "../hooks";
 import { predict } from "../api";
-import { OPTIONS, LABELS } from "../options";
+import { OPT_GROUP, OPT_PARENT } from "../options";
 
-const initial = {
-  gender: "female",
-  race_ethnicity: "group B",
-  parental_level_of_education: "bachelor's degree",
-  lunch: "standard",
-  test_preparation_course: "none",
+const empty = {
+  gender: "",
+  race_ethnicity: "",
+  parental_level_of_education: "",
+  lunch: "",
+  test_preparation_course: "",
   reading_score: "",
   writing_score: "",
 };
 
-const fieldClass =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-brand-500 focus:outline-none";
+const withIcon = (Icon, text) => (
+  <span className="iconic"><Icon /> {text}</span>
+);
 
 export default function Predict() {
-  const [form, setForm] = useState(initial);
+  const [form, setForm] = useState(empty);
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const resultRef = useScrollTo(result);
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -38,58 +50,75 @@ export default function Predict() {
   };
 
   return (
-    <div className="mx-auto max-w-xl rounded-2xl bg-white p-6 shadow">
-      <h1 className="mb-4 text-2xl font-semibold text-brand-700">
-        Student Exam Performance Indicator
-      </h1>
+    <PageCard
+      badge={<FaGraduationCap />}
+      title="Exam Performance Predictor"
+      subtitle="Fill in the details below to estimate the maths score."
+    >
+      <ErrorAlert message={error} />
 
-      <form onSubmit={onSubmit} className="space-y-4">
-        {Object.keys(OPTIONS).map((name) => (
-          <label key={name} className="block">
-            <span className="mb-1 block text-sm text-slate-600">{LABELS[name]}</span>
-            <select name={name} value={form[name]} onChange={onChange} className={fieldClass}>
-              {OPTIONS[name].map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-          </label>
-        ))}
+      <form onSubmit={onSubmit}>
+        <div className="section-title">Student profile</div>
 
-        {["reading_score", "writing_score"].map((name) => (
-          <label key={name} className="block">
-            <span className="mb-1 block text-sm text-slate-600">
-              {name === "reading_score" ? "Reading score" : "Writing score"} (0-100)
-            </span>
-            <input
-              type="number" name={name} value={form[name]} onChange={onChange}
-              required min="0" max="100" className={fieldClass}
-            />
-          </label>
-        ))}
+        <Toggle
+          label="Gender" name="gender" value={form.gender} onChange={onChange}
+          options={[
+            { id: "g_male", value: "male", text: withIcon(FaMale, "Male") },
+            { id: "g_female", value: "female", text: withIcon(FaFemale, "Female") },
+          ]}
+        />
 
-        <button
-          disabled={loading}
-          className="w-full rounded-lg bg-brand-500 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-        >
-          {loading ? "Predicting..." : "Predict Math Score"}
-        </button>
+        <div className="row">
+          <Select
+            id="race_ethnicity" name="race_ethnicity" label="Race / Ethnicity"
+            options={OPT_GROUP} value={form.race_ethnicity} onChange={onChange}
+          />
+          <Select
+            id="parental_level_of_education" name="parental_level_of_education"
+            label="Parental Education" options={OPT_PARENT}
+            value={form.parental_level_of_education} onChange={onChange}
+          />
+        </div>
+
+        <div className="section-title">School details</div>
+
+        <Toggle
+          label="Lunch type" name="lunch" value={form.lunch} onChange={onChange}
+          options={[
+            { id: "l_std", value: "standard", text: withIcon(FaUtensils, "Standard") },
+            { id: "l_free", value: "free/reduced", text: withIcon(FaAppleAlt, "Free / reduced") },
+          ]}
+        />
+        <Toggle
+          label="Test preparation course" name="test_preparation_course"
+          value={form.test_preparation_course} onChange={onChange}
+          options={[
+            { id: "t_none", value: "none", text: withIcon(FaBan, "None") },
+            { id: "t_done", value: "completed", text: withIcon(FaCheckCircle, "Completed") },
+          ]}
+        />
+
+        <div className="section-title">Scores</div>
+
+        <div className="row">
+          <NumberField
+            id="reading_score" name="reading_score"
+            label={<span className="iconic"><FaBookOpen /> Reading (0-100)</span>}
+            placeholder="e.g. 72" value={form.reading_score} onChange={onChange}
+          />
+          <NumberField
+            id="writing_score" name="writing_score"
+            label={<span className="iconic"><FaPen /> Writing (0-100)</span>}
+            placeholder="e.g. 74" value={form.writing_score} onChange={onChange}
+          />
+        </div>
+
+        <SubmitButton loading={loading} idle="Predict Maths Score" busy="Predicting..." />
       </form>
 
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {result && <ReportResult result={result} innerRef={resultRef} />}
 
-      {result && (
-        <div className="mt-4 rounded-lg bg-brand-50 p-4">
-          <p className="text-lg">
-            Predicted math score: <strong>{result.score}</strong> ({result.grade}) · {result.remark}
-          </p>
-          <p className="text-sm text-slate-500">
-            Likely range {result.low}-{result.high} · top {result.top_pct}% overall
-          </p>
-          <ul className="mt-2 list-disc pl-5 text-sm">
-            {result.tips.map((t) => <li key={t}>{t}</li>)}
-          </ul>
-        </div>
-      )}
-    </div>
+      <Link className="link" to="/"><FaArrowLeft /> Back to home</Link>
+    </PageCard>
   );
 }
